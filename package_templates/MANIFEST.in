@@ -1,4 +1,5 @@
 include analyse.py
 include README.md
 recursive-include npu_profiler *
+recursive-include analysis *
 exclude setup.py

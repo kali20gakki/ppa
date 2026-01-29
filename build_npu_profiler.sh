@@ -24,6 +24,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK_DIR="${SCRIPT_DIR}/build_workspace"
 TORCH_NPU_REPO="https://gitcode.com/Ascend/pytorch.git"
 TORCH_NPU_DIR="${WORK_DIR}/pytorch"
+MSPROF_REPO="https://gitcode.com/Ascend/msprof.git"
+MSPROF_DIR="${WORK_DIR}/msprof"
 STANDALONE_DIR="${WORK_DIR}/npu_profiler_standalone"
 OUTPUT_DIR="${SCRIPT_DIR}/dist"
 
@@ -35,12 +37,12 @@ echo_info "输出目录: ${OUTPUT_DIR}"
 echo ""
 
 # 1. 创建工作目录
-echo_info "[1/5] 创建工作目录..."
+echo_info "[1/6] 创建工作目录..."
 mkdir -p "${WORK_DIR}"
 mkdir -p "${OUTPUT_DIR}"
 
 # 2. Clone torch_npu仓库
-echo_info "[2/5] Clone torch_npu仓库..."
+echo_info "[2/6] Clone torch_npu仓库..."
 if [ -d "${TORCH_NPU_DIR}" ]; then
     echo_warn "目录已存在,跳过clone: ${TORCH_NPU_DIR}"
     echo_warn "如需重新clone,请删除该目录"
@@ -50,8 +52,37 @@ else
     echo_info "Clone完成"
 fi
 
+# 2.5. Clone msprof仓库并编译
+echo_info "[2.5/6] Clone msprof仓库并编译..."
+if [ -d "${MSPROF_DIR}" ]; then
+    echo_warn "msprof目录已存在,跳过clone: ${MSPROF_DIR}"
+    echo_warn "如需重新clone,请删除该目录"
+else
+    echo_info "正在从 ${MSPROF_REPO} clone..."
+    git clone --depth=1 "${MSPROF_REPO}" "${MSPROF_DIR}"
+    echo_info "Clone完成"
+fi
+
+# 下载三方依赖包
+echo_info "下载msprof三方依赖包..."
+cd "${MSPROF_DIR}"
+bash scripts/download_thirdparty.sh
+
+# 编译解析包
+echo_info "编译msprof解析包..."
+bash build/build.sh --mode=analysis
+
+# 检查编译产物
+MSPROF_ANALYSIS_DIR="${MSPROF_DIR}/build/analysis/build/lib/analysis"
+if [ ! -d "${MSPROF_ANALYSIS_DIR}" ]; then
+    echo_error "msprof编译失败,未找到产物目录: ${MSPROF_ANALYSIS_DIR}"
+    exit 1
+fi
+
+echo_info "msprof编译完成"
+
 # 3. 执行create_standalone_profiler.py
-echo_info "[3/5] 执行create_standalone_profiler.py..."
+echo_info "[3/6] 执行create_standalone_profiler.py..."
 
 # 修改脚本中的路径配置
 TEMP_SCRIPT="${WORK_DIR}/create_standalone_profiler_temp.py"
@@ -72,12 +103,43 @@ if [ ! -d "${STANDALONE_DIR}" ]; then
     exit 1
 fi
 
+# 3.5. 复制msprof产物到standalone目录
+echo_info "[3.5/6] 复制msprof产物到standalone目录..."
+MSPROF_TARGET_DIR="${STANDALONE_DIR}/analysis"
+mkdir -p "${MSPROF_TARGET_DIR}"
+
+# 复制analysis文件夹
+echo_info "复制 ${MSPROF_ANALYSIS_DIR} 到 ${MSPROF_TARGET_DIR}/"
+cp -r "${MSPROF_ANALYSIS_DIR}" "${MSPROF_TARGET_DIR}/"
+
+# 验证msprof.py是否存在
+MSPROF_PY_PATH="${MSPROF_TARGET_DIR}/analysis/msprof/msprof.py"
+if [ ! -f "${MSPROF_PY_PATH}" ]; then
+    echo_error "msprof.py未找到: ${MSPROF_PY_PATH}"
+    exit 1
+fi
+
+# 应用补丁：修改_cann_export.py以支持打包的msprof
+echo_info "应用补丁到 _cann_export.py..."
+CANN_EXPORT_FILE="${STANDALONE_DIR}/npu_profiler/analysis/prof_view/cann_parse/_cann_export.py"
+if [ -f "${CANN_EXPORT_FILE}" ]; then
+    python3 "${SCRIPT_DIR}/patch_cann_export.py" "${CANN_EXPORT_FILE}"
+    if [ $? -ne 0 ]; then
+        echo_error "补丁应用失败"
+        exit 1
+    fi
+else
+    echo_error "_cann_export.py 未找到: ${CANN_EXPORT_FILE}"
+    exit 1
+fi
+
+
 # 4. 生成打包文件(setup.py和README.md)
-echo_info "[4/5] 生成打包文件..."
+echo_info "[4/6] 生成打包文件..."
 python3 "${SCRIPT_DIR}/generate_package_files.py" "${STANDALONE_DIR}"
 
 # 5. 打包成whl
-echo_info "[5/5] 打包成whl文件..."
+echo_info "[5/6] 打包成whl文件..."
 cd "${STANDALONE_DIR}"
 
 # 清理旧的构建文件
