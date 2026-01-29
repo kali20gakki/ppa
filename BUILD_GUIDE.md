@@ -29,7 +29,7 @@ cd /Users/a123/Project/pta_profiler
 
 ```
 dist/
-└── npu-profiler-analyser-1.0.0-py3-none-any.whl
+└── ppa-1.0.0-py3-none-any.whl
 ```
 
 ## 安装和使用
@@ -37,22 +37,22 @@ dist/
 ### 安装whl包
 
 ```bash
-pip install dist/npu-profiler-analyser-1.0.0-py3-none-any.whl
+pip install dist/ppa-1.0.0-py3-none-any.whl
 ```
 
 ### 使用命令行接口
 
-安装后会提供 `npu-profiler-analyse` 命令:
+安装后会提供 `ppa` 命令:
 
 ```bash
 # 基本用法
-npu-profiler-analyse /path/to/profiling_data
+ppa /path/to/profiling_data
 
 # 指定最大进程数
-npu-profiler-analyse /path/to/profiling_data --max_process_number 8
+ppa /path/to/profiling_data --max_process_number 8
 
 # 指定导出类型
-npu-profiler-analyse /path/to/profiling_data --export_type text
+ppa /path/to/profiling_data --export_type text
 ```
 
 ### Python API使用
@@ -107,7 +107,7 @@ pta_profiler/
 │   ├── pytorch/                   # clone的torch_npu仓库
 │   └── npu_profiler_standalone/   # 提取的独立工具
 └── dist/                          # 输出目录
-    └── npu-profiler-analyser-*.whl
+    └── ppa-*.whl
 ```
 
 ## 脚本说明

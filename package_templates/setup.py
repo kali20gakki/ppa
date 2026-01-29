@@ -14,7 +14,7 @@ def read_readme():
     return "NPU Profiler 离线分析工具"
 
 setup(
-    name="npu-profiler-analyser",
+    name="ppa",
     version="1.0.0",
     author="Ascend",
     author_email="",
@@ -45,7 +45,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'npu-profiler-analyse=analyse:main',
+            'ppa=analyse:main',
         ],
     },
     include_package_data=True,

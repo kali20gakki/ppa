@@ -39,7 +39,7 @@
 **功能**:
 - 生成符合setuptools规范的setup.py
 - 生成包含使用说明的README.md
-- 配置命令行入口点(npu-profiler-analyse)
+- 配置命令行入口点(ppa)
 
 **使用方法**:
 ```bash
@@ -86,16 +86,16 @@ python3 generate_package_files.py <target_directory>
 
 ## 输出产物
 
-### npu-profiler-analyser-1.0.0-py3-none-any.whl
+### ppa-1.0.0-py3-none-any.whl
 最终的Python wheel包,包含:
 - `npu_profiler/` - 核心分析代码
 - `analyse.py` - 主入口文件
-- 命令行工具: `npu-profiler-analyse`
+- 命令行工具: `ppa`
 
 **安装后提供**:
 ```bash
 # 命令行接口
-npu-profiler-analyse /path/to/profiling_data
+ppa /path/to/profiling_data
 
 # Python API
 from analyse import analyse

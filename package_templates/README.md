@@ -1,4 +1,4 @@
-# NPU Profiler 离线分析工具
+# PTA Profiler Analyser (ppa)
 
 独立的NPU Profiler数据分析工具,无需完整的torch_npu环境即可运行。
 
@@ -13,7 +13,7 @@
 ## 安装
 
 ```bash
-pip install npu-profiler-analyser-1.0.0-py3-none-any.whl
+pip install ppa-1.0.0-py3-none-any.whl
 ```
 
 ## 使用方法
@@ -22,13 +22,13 @@ pip install npu-profiler-analyser-1.0.0-py3-none-any.whl
 
 ```bash
 # 基本用法
-npu-profiler-analyse /path/to/profiling_data
+ppa /path/to/profiling_data
 
 # 指定最大进程数
-npu-profiler-analyse /path/to/profiling_data --max_process_number 8
+ppa /path/to/profiling_data --max_process_number 8
 
 # 指定导出类型
-npu-profiler-analyse /path/to/profiling_data --export_type text
+ppa /path/to/profiling_data --export_type text
 ```
 
 ### Python API使用
