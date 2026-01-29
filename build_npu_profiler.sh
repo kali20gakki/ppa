@@ -134,6 +134,10 @@ else
 fi
 
 
+# 3.6. 重组目录结构
+echo_info "[3.6/6] 重组目录结构..."
+python3 "${SCRIPT_DIR}/reorganize_structure.py" "${STANDALONE_DIR}"
+
 # 4. 生成打包文件(setup.py和README.md)
 echo_info "[4/6] 生成打包文件..."
 python3 "${SCRIPT_DIR}/generate_package_files.py" "${STANDALONE_DIR}"

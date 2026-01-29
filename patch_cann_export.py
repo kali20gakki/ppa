@@ -53,12 +53,13 @@ def patch_cann_export(file_path: str):
         """获取打包进来的msprof.py路径"""
         # 获取当前文件所在目录
         current_file = os.path.abspath(__file__)
-        # 向上查找包根目录（包含analyse.py的目录）
+        # 向上查找包根目录（包含cli.py的目录，即ppa包目录）
         package_root = current_file
         for _ in range(10):  # 最多向上查找10层
             package_root = os.path.dirname(package_root)
-            analyse_py = os.path.join(package_root, "analyse.py")
-            if os.path.exists(analyse_py):
+            # 在新的结构中，根目录下会有 cli.py (由 analyse.py 重命名/复制而来)
+            root_marker = os.path.join(package_root, "cli.py")
+            if os.path.exists(root_marker):
                 bundled_path = os.path.join(package_root, self._BUNDLED_MSPROF_PATH)
                 return bundled_path if os.path.exists(bundled_path) else ""
         return ""'''
