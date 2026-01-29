@@ -23,7 +23,6 @@ setup(
     long_description_content_type="text/markdown",
     url="https://gitcode.com/Ascend/pytorch",
     packages=find_packages(),
-    py_modules=['analyse'],  # 包含根目录的analyse.py
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
@@ -45,7 +44,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ppa=analyse:main',
+            'ppa=ppa.cli:main',
         ],
     },
     include_package_data=True,

@@ -54,6 +54,12 @@ def reorganize_structure(standalone_dir: str):
         with open(src_analyse, 'r', encoding='utf-8') as f:
             analyse_content = f.read()
         
+        # 修正导入路径: from npu_profiler -> from ppa.npu_profiler
+        analyse_content = analyse_content.replace(
+            "from npu_profiler", 
+            "from ppa.npu_profiler"
+        )
+        
         # 创建 __main__.py（作为包的入口点）
         main_py = os.path.join(ppa_dir, "__main__.py")
         with open(main_py, 'w', encoding='utf-8') as f:
