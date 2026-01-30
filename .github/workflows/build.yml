@@ -65,7 +65,9 @@ jobs:
         bind_mount_repository: true
         commands: |
           sudo apt-get update
-          sudo apt-get install -y cmake python3 python3-distutils python3-dev ccache autoconf gperf libtool libssl-dev pigz git wget libsqlite3-dev curl g++
+          # newer debian/raspios versions may not have python3-distutils separated or it's named differently.
+          # standard python3-dev usually pulls in necessary headers.
+          sudo apt-get install -y cmake python3 python3-dev ccache autoconf gperf libtool libssl-dev pigz git wget libsqlite3-dev curl g++
           curl https://bootstrap.pypa.io/pip/3.8/get-pip.py -o get-pip.py
           python3 get-pip.py
           python3 -m pip install --upgrade pip
