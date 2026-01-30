@@ -73,7 +73,8 @@ def patch_cann_export(file_path: str):
     
     new_db_export = '''            if Constant.Db in self._export_type:
                 if self.use_bundled_msprof:
-                    analyze_cmd_list = ["python3", self.msprof_path, "--export=on", "--type=db", f"--output={self._cann_path}"]
+                    # msprof.py 使用子命令格式: python3 msprof.py export db -dir <path>
+                    analyze_cmd_list = ["python3", self.msprof_path, "export", "db", "-dir", self._cann_path]
                 else:
                     analyze_cmd_list = [self.msprof_path, "--export=on", "--type=db", f"--output={self._cann_path}"]
                 completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)'''
@@ -89,10 +90,17 @@ def patch_cann_export(file_path: str):
     new_text_export = '''            if Constant.Text in self._export_type:
                 # 避免老CANN包无type参数报错
                 if self.use_bundled_msprof:
-                    analyze_cmd_list = ["python3", self.msprof_path, "--export=on", f"--output={self._cann_path}"]
+                    # msprof.py 使用子命令格式: 需要分别导出 timeline 和 summary
+                    for export_type in ("timeline", "summary"):
+                        analyze_cmd_list = ["python3", self.msprof_path, "export", export_type, "-dir", self._cann_path]
+                        completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)
+                        if completed_analysis.returncode != self.COMMAND_SUCCESS:
+                            raise RuntimeError(f"Failed to export CANN {export_type} Profiling data." + prof_error(ErrCode.INTERNAL))
                 else:
                     analyze_cmd_list = [self.msprof_path, "--export=on", f"--output={self._cann_path}"]
-                completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)'''
+                    completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)
+                    if completed_analysis.returncode != self.COMMAND_SUCCESS:
+                        raise RuntimeError("Failed to export CANN TEXT Profiling data." + prof_error(ErrCode.INTERNAL))'''
     
     content = content.replace(old_text_export, new_text_export)
     
