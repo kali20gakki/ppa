@@ -119,6 +119,15 @@ if [ ! -f "${MSPROF_PY_PATH}" ]; then
     exit 1
 fi
 
+# 复制 prefix 目录 (包含 libc_sec.so)
+echo_info "复制 ${MSPROF_DIR}/prefix 到 ${STANDALONE_DIR}/prefix"
+if [ -d "${MSPROF_DIR}/prefix" ]; then
+    cp -r "${MSPROF_DIR}/prefix" "${STANDALONE_DIR}/prefix"
+    echo_info "prefix 复制完成"
+else
+    echo_warn "prefix 目录未找到: ${MSPROF_DIR}/prefix"
+fi
+
 # 应用补丁：修改_cann_export.py以支持打包的msprof
 echo_info "应用补丁到 _cann_export.py..."
 CANN_EXPORT_FILE="${STANDALONE_DIR}/npu_profiler/analysis/prof_view/cann_parse/_cann_export.py"

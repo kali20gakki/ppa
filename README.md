@@ -24,3 +24,7 @@ ppa --help
 # 命令行接口
 ppa /path/to/profiling_data
 ```
+
+
+## 限制说明
+1. 由于MemoryTimelineParser需要依赖原生torch，使用频率不高，为了最大降低三方依赖，暂时转为空实现。

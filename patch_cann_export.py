@@ -73,11 +73,28 @@ def patch_cann_export(file_path: str):
     
     new_db_export = '''            if Constant.Db in self._export_type:
                 if self.use_bundled_msprof:
-                    # msprof.py 使用子命令格式: python3 msprof.py export db -dir <path>
+                    # 寻找并设置 libc_sec.so 的路径 (LD_LIBRARY_PATH)
+                    msprof_dir = os.path.dirname(self.msprof_path)
+                    lib_path = ""
+                    p = msprof_dir
+                    for _ in range(4): # 向上查找 prefix 目录
+                        possible_lib = os.path.join(p, "prefix/securec_shared")
+                        if os.path.exists(possible_lib):
+                             lib_path = possible_lib
+                             break
+                        p = os.path.dirname(p)
+                    
+                    env = os.environ.copy()
+                    if lib_path:
+                         ld_path = env.get("LD_LIBRARY_PATH", "")
+                         env["LD_LIBRARY_PATH"] = f"{lib_path}:{ld_path}"
+
+                    # msprof.py 使用子命令格式
                     analyze_cmd_list = ["python3", self.msprof_path, "export", "db", "-dir", self._cann_path]
+                    completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False, env=env)
                 else:
                     analyze_cmd_list = [self.msprof_path, "--export=on", "--type=db", f"--output={self._cann_path}"]
-                completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)'''
+                    completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)'''
     
     content = content.replace(old_db_export, new_db_export)
     
@@ -90,16 +107,40 @@ def patch_cann_export(file_path: str):
     new_text_export = '''            if Constant.Text in self._export_type:
                 # 避免老CANN包无type参数报错
                 if self.use_bundled_msprof:
+                    # 寻找并设置 libc_sec.so 的路径 (LD_LIBRARY_PATH)
+                    msprof_dir = os.path.dirname(self.msprof_path)
+                    lib_path = ""
+                    p = msprof_dir
+                    for _ in range(4): # 向上查找 prefix 目录
+                        possible_lib = os.path.join(p, "prefix/securec_shared")
+                        if os.path.exists(possible_lib):
+                             lib_path = possible_lib
+                             break
+                        p = os.path.dirname(p)
+                    
+                    env = os.environ.copy()
+                    if lib_path:
+                         ld_path = env.get("LD_LIBRARY_PATH", "")
+                         env["LD_LIBRARY_PATH"] = f"{lib_path}:{ld_path}"
+
                     # msprof.py 使用子命令格式: 需要分别导出 timeline 和 summary
                     for export_type in ("timeline", "summary"):
                         analyze_cmd_list = ["python3", self.msprof_path, "export", export_type, "-dir", self._cann_path]
-                        completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)
+                        completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False, env=env)
                         if completed_analysis.returncode != self.COMMAND_SUCCESS:
+                            print(f"[ERROR] msprof export {export_type} failed!")
+                            if completed_analysis.stderr:
+                                print(f"[ERROR] stderr: {completed_analysis.stderr.decode('utf-8', errors='ignore')}")
+                            if completed_analysis.stdout:
+                                print(f"[ERROR] stdout: {completed_analysis.stdout.decode('utf-8', errors='ignore')}")
                             raise RuntimeError(f"Failed to export CANN {export_type} Profiling data." + prof_error(ErrCode.INTERNAL))
                 else:
                     analyze_cmd_list = [self.msprof_path, "--export=on", f"--output={self._cann_path}"]
                     completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False)
                     if completed_analysis.returncode != self.COMMAND_SUCCESS:
+                        print(f"[ERROR] msprof export failed!")
+                        if completed_analysis.stderr:
+                            print(f"[ERROR] stderr: {completed_analysis.stderr.decode('utf-8', errors='ignore')}")
                         raise RuntimeError("Failed to export CANN TEXT Profiling data." + prof_error(ErrCode.INTERNAL))'''
     
     content = content.replace(old_text_export, new_text_export)

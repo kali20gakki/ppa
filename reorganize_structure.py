@@ -47,6 +47,15 @@ def reorganize_structure(standalone_dir: str):
     else:
         print(f"⚠ analysis 目录不存在，跳过")
     
+    # 移动 prefix 目录
+    src_prefix = os.path.join(standalone_dir, "prefix")
+    dst_prefix = os.path.join(ppa_dir, "prefix")
+    if os.path.exists(src_prefix):
+        shutil.move(src_prefix, dst_prefix)
+        print(f"✓ 移动 prefix/ -> ppa/prefix/")
+    else:
+        print(f"⚠ prefix 目录不存在，跳过")
+    
     # 处理 analyse.py
     src_analyse = os.path.join(standalone_dir, "analyse.py")
     if os.path.exists(src_analyse):
@@ -93,7 +102,8 @@ def reorganize_structure(standalone_dir: str):
     print("    ├── __main__.py")
     print("    ├── cli.py")
     print("    ├── npu_profiler/")
-    print("    └── analysis/")
+    print("    ├── analysis/")
+    print("    └── prefix/")
     
     return True
 
