@@ -15,39 +15,95 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            distro: ubuntu20.04
+            artifact_suffix: x86_64
+          - arch: aarch64
+            distro: ubuntu20.04
+            artifact_suffix: aarch64
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
+    # ARM64: Setup QEMU
+    - name: Set up QEMU
+      if: matrix.arch == 'aarch64'
+      uses: docker/setup-qemu-action@v3
+
+    # AMD64: Native Build
+    - name: Set up Python (x86)
+      if: matrix.arch == 'amd64'
       uses: actions/setup-python@v5
       with:
         python-version: '3.8'
 
-    - name: Install System Dependencies
+    - name: Install Dependencies (x86)
+      if: matrix.arch == 'amd64'
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake python3 python3-pip ccache autoconf gperf libtool libssl-dev pigz
-
-    - name: Install Python Dependencies
-      run: |
         python -m pip install --upgrade pip
         pip install setuptools wheel
 
-    - name: Build PPA
+    - name: Build PPA (x86)
+      if: matrix.arch == 'amd64'
       run: |
         chmod +x build_npu_profiler.sh
         ./build_npu_profiler.sh
 
+    # AARCH64: Emulated Build
+    - name: Build PPA (ARM)
+      if: matrix.arch == 'aarch64'
+      uses: uraimo/run-on-arch-action@v2
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ${{ matrix.distro }}
+        githubToken: ${{ github.token }}
+        install: |
+          apt-get update
+          apt-get install -y cmake python3 python3-pip ccache autoconf gperf libtool libssl-dev pigz git wget
+          python3 -m pip install --upgrade pip
+          pip3 install setuptools wheel
+        run: |
+          chmod +x build_npu_profiler.sh
+          ./build_npu_profiler.sh
+          # Fix permissions for artifact upload
+          chmod -R 777 dist
+
+    # Common: Rename & Upload
+    - name: Rename Wheel with Arch
+      run: |
+        cd dist
+        for f in *.whl; do
+          if [[ "$f" != *"${{ matrix.artifact_suffix }}"* ]]; then
+            mv "$f" "${f%.whl}-${{ matrix.artifact_suffix }}.whl"
+          fi
+        done
+        ls -l
+
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ppa-wheel
+        name: ppa-wheel-${{ matrix.artifact_suffix }}
         path: dist/*.whl
 
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2
-      with:
-        files: dist/*.whl
-        generate_release_notes: true
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: ppa-wheel-*
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.whl
+          generate_release_notes: true
