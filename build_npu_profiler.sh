@@ -147,6 +147,20 @@ else
     exit 1
 fi
 
+# 处理 _memory_timeline_parser.py (移除 torch 依赖)
+echo_info "处理 _memory_timeline_parser.py..."
+MEMORY_TIMELINE_FILE="${STANDALONE_DIR}/npu_profiler/analysis/prof_view/_memory_timeline_parser.py"
+if [ -f "${MEMORY_TIMELINE_FILE}" ]; then
+    python3 "${SCRIPT_DIR}/patch_remove_memory_timeline.py" "${MEMORY_TIMELINE_FILE}"
+    if [ $? -ne 0 ]; then
+        echo_error "处理失败"
+        exit 1
+    fi
+else
+    echo_error "_memory_timeline_parser.py 未找到: ${MEMORY_TIMELINE_FILE}"
+    exit 1
+fi
+
 
 # 3.6. 重组目录结构
 echo_info "[3.6/6] 重组目录结构..."
