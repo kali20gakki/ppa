@@ -69,7 +69,15 @@ cd "${MSPROF_DIR}"
 bash scripts/download_thirdparty.sh
 
 # 编译解析包
+# 编译解析包
 echo_info "编译msprof解析包..."
+# Apply patch to avoid OOM or high load in QEMU
+if [ -f "${SCRIPT_DIR}/patches/msprof_build.patch" ]; then
+    echo_info "应用msprof构建补丁..."
+    cd "${MSPROF_DIR}"
+    git apply "${SCRIPT_DIR}/patches/msprof_build.patch"
+fi
+cd "${MSPROF_DIR}"
 bash build/build.sh --mode=analysis
 
 # 检查编译产物

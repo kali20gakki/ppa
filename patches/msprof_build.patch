@@ -1,0 +1,13 @@
+diff --git a/build/build.sh b/build/build.sh
+index 8e45d12..87a4128 100755
+--- a/build/build.sh
++++ b/build/build.sh
+@@ -79,7 +79,7 @@ else
+ fi
+ 
+ # compile
+-make -j$(nproc)
++make -j4
+ if [ $? -ne 0 ]; then
+     echo "[ERROR] build failed!"
+     exit 1
