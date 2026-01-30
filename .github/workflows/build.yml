@@ -66,8 +66,8 @@ jobs:
           apt-get update
           # Explicitly install python3-distutils and dev headers, avoid python3-pip via apt to prevent dpkg errors
           apt-get install -y cmake python3 python3-distutils python3-dev ccache autoconf gperf libtool libssl-dev pigz git wget libsqlite3-dev curl
-          # Install pip via script
-          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+          # Install pip via script (Use Python 3.8 specific URL as main script dropped support)
+          curl https://bootstrap.pypa.io/pip/3.8/get-pip.py -o get-pip.py
           python3 get-pip.py
           python3 -m pip install --upgrade pip
           pip3 install setuptools wheel
