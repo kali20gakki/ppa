@@ -133,6 +133,20 @@ else
     exit 1
 fi
 
+# 应用补丁到 _cann_analyze.py
+echo_info "应用补丁到 _cann_analyze.py..."
+CANN_ANALYZE_FILE="${STANDALONE_DIR}/npu_profiler/analysis/prof_view/cann_parse/_cann_analyze.py"
+if [ -f "${CANN_ANALYZE_FILE}" ]; then
+    python3 "${SCRIPT_DIR}/patch_cann_analyze.py" "${CANN_ANALYZE_FILE}"
+    if [ $? -ne 0 ]; then
+        echo_error "补丁应用失败"
+        exit 1
+    fi
+else
+    echo_error "_cann_analyze.py 未找到: ${CANN_ANALYZE_FILE}"
+    exit 1
+fi
+
 
 # 3.6. 重组目录结构
 echo_info "[3.6/6] 重组目录结构..."
