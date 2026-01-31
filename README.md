@@ -10,6 +10,10 @@ PPA是基于torch_npu profiler的离线分析工具, 目的是解耦torch_npu和
 apt install -y cmake python3 python3-pip ccache autoconf gperf libtool libssl-dev pigz
 ```
 
+- 一键编译生成whl包
+```bash
+bash build_npu_profiler.sh
+```
 
 - 安装whl包
 ```bash
