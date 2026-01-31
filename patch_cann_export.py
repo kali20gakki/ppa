@@ -126,13 +126,16 @@ def patch_cann_export(file_path: str):
                     # msprof.py 使用子命令格式: 需要分别导出 timeline 和 summary
                     for export_type in ("timeline", "summary"):
                         analyze_cmd_list = ["python3", self.msprof_path, "export", export_type, "-dir", self._cann_path]
-                        completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False, env=env)
-                        if completed_analysis.returncode != self.COMMAND_SUCCESS:
-                            print(f"[ERROR] msprof export {export_type} failed!")
+                        try:
+                            completed_analysis = subprocess.run(analyze_cmd_list, capture_output=True, shell=False, env=env, check=True, text=True)
                             if completed_analysis.stderr:
-                                print(f"[ERROR] stderr: {completed_analysis.stderr.decode('utf-8', errors='ignore')}")
-                            if completed_analysis.stdout:
-                                print(f"[ERROR] stdout: {completed_analysis.stdout.decode('utf-8', errors='ignore')}")
+                                print(f"[ERROR] stderr: {completed_analysis.stderr}")
+                        except subprocess.CalledProcessError as e:
+                            print(f"[ERROR] msprof export {export_type} failed!")
+                            if e.stderr:
+                                print(f"[ERROR] stderr: {e.stderr}")
+                            if e.stdout:
+                                print(f"[ERROR] stdout: {e.stdout}")
                             raise RuntimeError(f"Failed to export CANN {export_type} Profiling data." + prof_error(ErrCode.INTERNAL))
                 else:
                     analyze_cmd_list = [self.msprof_path, "--export=on", f"--output={self._cann_path}"]
